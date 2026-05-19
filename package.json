@@ -1,0 +1,14 @@
+{
+  "name": "mimo-reasoning-arena",
+  "version": "1.0.0",
+  "description": "MiMo Reasoning Arena - AI-powered reasoning benchmark platform showcasing Xiaomi MiMo's chain-of-thought capabilities",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["mimo", "reasoning", "ai", "benchmark", "chain-of-thought", "xiaomi"],
+  "author": "smokyrudeboys",
+  "license": "MIT",
+  "dependencies": {}
+}
