@@ -1,115 +1,202 @@
-# MiMo Reasoning Arena 🧠
+# MiMo CodeForge ⚡
 
-A sophisticated AI reasoning benchmark platform that showcases Xiaomi MiMo v2.5 Pro's advanced chain-of-thought capabilities. Test your problem-solving skills against one of the most powerful reasoning models available.
+AI-powered code generation, review, debugging & explanation platform built on **Xiaomi MiMo V2.5-Pro API** with chain-of-thought reasoning.
 
-![MiMo Arena](https://img.shields.io/badge/MiMo-v2.5_Pro-blue?style=for-the-badge)
+![MiMo V2.5-Pro](https://img.shields.io/badge/MiMo-V2.5--Pro-blue?style=for-the-badge)
 ![Node.js](https://img.shields.io/badge/Node.js-22.x-green?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge)
+![API](https://img.shields.io/badge/API-OpenAI_Compatible-purple?style=for-the-badge)
 
-## 🚀 Features
+## 🚀 Overview
 
-- **12 Curated Challenges** across 4 categories: Math, Logic, Code, and Pattern Recognition
-- **Chain-of-Thought Reasoning** — Watch MiMo decompose complex problems step-by-step
-- **Real-time Evaluation** — Submit answers and get instant feedback with detailed explanations
-- **Model Leaderboard** — Compare MiMo's performance against GPT-4o, Claude 3.5, Gemini Pro, and more
-- **Beautiful Dark UI** — Modern glassmorphism design with smooth animations
-- **Zero Dependencies** — Pure Node.js server, no external packages required
+MiMo CodeForge is a developer tool that leverages Xiaomi's MiMo V2.5-Pro reasoning model to provide intelligent code assistance. It integrates directly with the [MiMo API Open Platform](https://platform.xiaomimimo.com) using the OpenAI-compatible protocol.
 
-## 📊 Challenge Categories
+### Why MiMo V2.5-Pro?
 
-| Category | Icon | Challenges | Difficulty Range |
-|----------|------|-----------|-----------------|
-| Mathematical Reasoning | 🧮 | 3 | Medium → Hard |
-| Logic Puzzles | 🧩 | 3 | Medium → Expert |
-| Code Reasoning | 💻 | 3 | Medium → Hard |
-| Pattern Recognition | 🔍 | 3 | Easy → Hard |
+- **Chain-of-Thought Reasoning** — MiMo shows its thinking process, making responses transparent and verifiable
+- **AIME 2025 Score: 68.5** — Exceptional mathematical and logical reasoning
+- **LiveCodeBench: 55.4** — Top-tier code generation capabilities
+- **7B efficiency** — Achieves GPT-4-class reasoning at a fraction of the size
 
-## 🏆 Benchmark Results
+## ⚡ Features
 
-| Model | Score | Accuracy | Avg Time |
-|-------|-------|----------|----------|
-| **MiMo v2.5 Pro** | **985** | **100%** | **1.2s** |
-| DeepSeek-R1 | 940 | 91.7% | 1.5s |
-| GPT-4o | 910 | 91.7% | 2.1s |
-| Claude 3.5 | 895 | 91.7% | 1.8s |
-| Gemini Pro | 820 | 83.3% | 2.5s |
+| Feature | Description |
+|---------|-------------|
+| **Code Generation** | Generate production-ready code with detailed comments |
+| **Code Review** | Security, performance, and best-practice analysis |
+| **Debugging** | Root cause analysis with chain-of-thought reasoning |
+| **Code Explanation** | Step-by-step breakdown at any skill level |
 
-## 🛠️ Tech Stack
+## 🔧 Tech Stack
 
-- **Backend**: Node.js (zero dependencies)
+- **Backend**: Pure Node.js (zero dependencies)
 - **Frontend**: Vanilla JS + Tailwind CSS (CDN)
-- **Fonts**: Inter + JetBrains Mono
-- **Design**: Glassmorphism + gradient borders + particle effects
+- **AI Model**: Xiaomi MiMo-V2.5-Pro via OpenAI-compatible API
+- **Protocol**: OpenAI Chat Completions API
+- **Deployment**: Vercel Serverless / Any Node.js host
 
-## 📦 Installation
-
-```bash
-git clone https://github.com/smokyrudeboys/mimo-reasoning-arena.git
-cd mimo-reasoning-arena
-npm start
-```
-
-No `npm install` needed — zero external dependencies!
-
-## 🔧 Usage
+## 📦 Quick Start
 
 ```bash
-# Start the server
+# Clone
+git clone https://github.com/smokyrudeboys/mimo-codeforge.git
+cd mimo-codeforge
+
+# Set MiMo API key (from platform.xiaomimimo.com)
+export MIMO_API_KEY=sk-your-key-here
+
+# Run
 node server.js
-
-# Or with custom port
-PORT=8080 node server.js
 ```
 
-Visit `http://localhost:3000` in your browser.
+Visit `http://localhost:3000`
 
-## 📡 API Endpoints
+## 🔑 Getting Your MiMo API Key
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/challenges` | Get all challenge categories and problems |
-| POST | `/api/solve` | Submit an answer for evaluation |
-| GET | `/api/leaderboard` | Get model comparison leaderboard |
+1. Register at [platform.xiaomimimo.com](https://platform.xiaomimimo.com)
+2. Go to Console → API Keys
+3. Create a new key (format: `sk-xxxxx`)
+4. Set as environment variable: `export MIMO_API_KEY=sk-xxxxx`
 
-### Example: Submit Answer
+## 📡 API Reference
+
+### Base Configuration
+
+```
+Base URL: https://api.xiaomimimo.com/v1
+Model: MiMo-V2.5-Pro
+Protocol: OpenAI Compatible
+```
+
+### Endpoints
+
+#### POST `/api/generate`
+Generate code from natural language description.
+
+```json
+{
+  "prompt": "Create a binary search function",
+  "language": "python",
+  "context": "Must handle edge cases"
+}
+```
+
+#### POST `/api/review`
+AI-powered code review with severity ratings.
+
+```json
+{
+  "code": "def login(user, pwd): ...",
+  "language": "python",
+  "focus": "security"
+}
+```
+
+#### POST `/api/debug`
+Root cause analysis and fix suggestions.
+
+```json
+{
+  "code": "function broken() { ... }",
+  "error": "TypeError: Cannot read property 'x' of undefined",
+  "language": "javascript"
+}
+```
+
+#### POST `/api/explain`
+Step-by-step code explanation.
+
+```json
+{
+  "code": "const memo = (fn) => { ... }",
+  "language": "javascript",
+  "level": "beginner"
+}
+```
+
+### Response Format
+
+```json
+{
+  "success": true,
+  "type": "generate",
+  "result": "...",
+  "reasoning": "Step 1: Analyze the requirements...",
+  "usage": { "prompt_tokens": 150, "completion_tokens": 500, "total_tokens": 650 },
+  "model": "MiMo-V2.5-Pro"
+}
+```
+
+## 🏗️ Architecture
+
+```
+mimo-codeforge/
+├── server.js          # Node.js server + MiMo API integration
+├── package.json       # Project metadata (zero deps)
+├── public/
+│   └── index.html     # SPA with all 4 tools
+├── vercel.json        # Vercel deployment config
+├── README.md
+└── LICENSE
+```
+
+## 🌐 Deployment
+
+### Vercel (Recommended)
 
 ```bash
-curl -X POST http://localhost:3000/api/solve \
-  -H "Content-Type: application/json" \
-  -d '{"challengeId": "math-1", "userAnswer": "12"}'
+npm i -g vercel
+vercel --prod
 ```
 
-## 🧠 How MiMo Reasoning Works
+Set `MIMO_API_KEY` in Vercel Environment Variables.
 
-MiMo v2.5 Pro uses advanced chain-of-thought (CoT) reasoning to solve problems:
+### Docker
 
-1. **Problem Decomposition** — Break complex problems into manageable sub-problems
-2. **Step-by-Step Logic** — Apply mathematical/logical rules at each step
-3. **Self-Verification** — Check intermediate results for consistency
-4. **Solution Synthesis** — Combine sub-results into a final answer
-
-This approach achieves superior accuracy on reasoning benchmarks compared to direct-answer generation.
-
-## 🏗️ Project Structure
-
-```
-mimo-reasoning-arena/
-├── server.js          # Node.js server with API routes
-├── package.json       # Project metadata
-├── public/
-│   └── index.html     # Single-page application (SPA)
-├── README.md          # Documentation
-└── LICENSE            # MIT License
+```dockerfile
+FROM node:22-alpine
+WORKDIR /app
+COPY . .
+ENV MIMO_API_KEY=sk-your-key
+EXPOSE 3000
+CMD ["node", "server.js"]
 ```
 
-## 🤝 Contributing
+### Any VPS
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/new-challenge`)
-3. Add your challenge to the `getChallenges()` function in `server.js`
-4. Commit your changes (`git commit -m 'Add new challenge'`)
-5. Push to the branch (`git push origin feature/new-challenge`)
-6. Open a Pull Request
+```bash
+export MIMO_API_KEY=sk-your-key
+node server.js
+# Or with PM2: pm2 start server.js --name mimo-codeforge
+```
+
+## 🔌 MiMo Platform Integration
+
+This project uses the following MiMo API features:
+
+- **OpenAI-compatible chat completions** (`/v1/chat/completions`)
+- **Chain-of-thought reasoning** (`reasoning_content` in response)
+- **Developer role messages** for system instructions
+- **Token usage tracking** for monitoring consumption
+
+Compatible with MiMo Token Plan (all tiers: Lite, Standard, Pro, Max).
+
+### Supported Models
+
+| Model | Use Case | Credit Rate |
+|-------|----------|-------------|
+| MiMo-V2.5-Pro | Complex reasoning, code generation | 2x |
+| MiMo-V2.5 | General tasks, explanations | 1x |
+| MiMo-V2-Omni | Multimodal understanding | 1x |
+
+## 🛠️ Development Tools Integration
+
+MiMo CodeForge is designed to complement your existing AI coding workflow:
+
+- **Claude Code** — Use MiMo as backend model via Token Plan
+- **Cursor** — Configure MiMo as custom model provider
+- **OpenCode** — Direct MiMo API integration
+- **Hermes Agent** — MiMo as reasoning provider
 
 ## 📄 License
 
@@ -118,11 +205,12 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## 🙏 Acknowledgments
 
 - [Xiaomi AI Lab](https://github.com/XiaomiMiMo) — MiMo model development
-- Inspired by reasoning benchmarks like GSM8K, MATH, and ARC
+- [MiMo API Platform](https://platform.xiaomimimo.com) — API infrastructure
+- [MiMo Orbit 100T Program](https://100t.xiaomimimo.com) — Creator incentive program
 
 ---
 
 <p align="center">
-  <strong>Built with 🧠 by the MiMo community</strong><br>
-  <sub>Showcasing the future of AI reasoning</sub>
+  <strong>Built with ⚡ using Xiaomi MiMo V2.5-Pro</strong><br>
+  <sub>Empowering developers with AI-driven code intelligence</sub>
 </p>

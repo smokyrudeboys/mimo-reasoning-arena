@@ -1,13 +1,13 @@
 {
-  "name": "mimo-reasoning-arena",
+  "name": "mimo-codeforge",
   "version": "1.0.0",
-  "description": "MiMo Reasoning Arena - AI-powered reasoning benchmark platform showcasing Xiaomi MiMo's chain-of-thought capabilities",
+  "description": "MiMo CodeForge - AI-powered code generation, review, and debugging platform built on Xiaomi MiMo V2.5-Pro API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
   },
-  "keywords": ["mimo", "reasoning", "ai", "benchmark", "chain-of-thought", "xiaomi"],
+  "keywords": ["mimo", "xiaomi", "ai", "code-generation", "code-review", "debugging", "mimo-v2.5-pro", "chain-of-thought"],
   "author": "smokyrudeboys",
   "license": "MIT",
   "dependencies": {}
