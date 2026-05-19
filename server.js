@@ -7,6 +7,11 @@ const PORT = process.env.PORT || 3000;
 const MIMO_API_KEY = process.env.MIMO_API_KEY || '';
 const MIMO_BASE_URL = 'https://api.xiaomimimo.com/v1/chat/completions';
 
+const MODELS = {
+  'pro': 'MiMo-V2.5-Pro',
+  'standard': 'MiMo-V2.5'
+};
+
 const MIME_TYPES = {
   '.html': 'text/html',
   '.css': 'text/css',
@@ -40,7 +45,6 @@ const server = http.createServer((req, res) => {
 });
 
 function handleAPI(req, res) {
-  res.setHeader('Content-Type', 'application/json');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
@@ -50,23 +54,25 @@ function handleAPI(req, res) {
     return res.end();
   }
 
-  if (req.url === '/api/generate' && req.method === 'POST') {
-    return handleGenerate(req, res);
-  }
-  if (req.url === '/api/review' && req.method === 'POST') {
-    return handleReview(req, res);
-  }
-  if (req.url === '/api/debug' && req.method === 'POST') {
-    return handleDebug(req, res);
-  }
-  if (req.url === '/api/explain' && req.method === 'POST') {
-    return handleExplain(req, res);
-  }
+  if (req.url === '/api/generate' && req.method === 'POST') return handleGenerate(req, res);
+  if (req.url === '/api/review' && req.method === 'POST') return handleReview(req, res);
+  if (req.url === '/api/debug' && req.method === 'POST') return handleDebug(req, res);
+  if (req.url === '/api/explain' && req.method === 'POST') return handleExplain(req, res);
+  if (req.url === '/api/test' && req.method === 'POST') return handleTestGen(req, res);
+  if (req.url === '/api/optimize' && req.method === 'POST') return handleOptimize(req, res);
   if (req.url === '/api/health' && req.method === 'GET') {
+    res.setHeader('Content-Type', 'application/json');
     res.writeHead(200);
-    return res.end(JSON.stringify({ status: 'ok', model: 'MiMo-V2.5-Pro', apiConfigured: !!MIMO_API_KEY }));
+    return res.end(JSON.stringify({
+      status: 'ok',
+      models: Object.values(MODELS),
+      apiConfigured: !!MIMO_API_KEY,
+      version: '2.0.0',
+      features: ['generate', 'review', 'debug', 'explain', 'test', 'optimize']
+    }));
   }
 
+  res.setHeader('Content-Type', 'application/json');
   res.writeHead(404);
   res.end(JSON.stringify({ error: 'Not found' }));
 }
@@ -79,19 +85,15 @@ function getRequestBody(req) {
       try { resolve(JSON.parse(body)); }
       catch (e) { reject(e); }
     });
+    req.on('error', reject);
   });
 }
 
-async function callMiMoAPI(messages, model = 'MiMo-V2.5-Pro') {
-  const apiKey = MIMO_API_KEY;
-  if (!apiKey) {
-    return { error: false, content: generateMockResponse(messages) };
-  }
-
+function callMiMoAPI(messages, model = 'MiMo-V2.5-Pro') {
   return new Promise((resolve, reject) => {
     const payload = JSON.stringify({
-      model: model,
-      messages: messages,
+      model,
+      messages,
       temperature: 0.7,
       max_tokens: 4096,
       stream: false
@@ -105,7 +107,7 @@ async function callMiMoAPI(messages, model = 'MiMo-V2.5-Pro') {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${MIMO_API_KEY}`,
         'Content-Length': Buffer.byteLength(payload)
       }
     };
@@ -116,57 +118,48 @@ async function callMiMoAPI(messages, model = 'MiMo-V2.5-Pro') {
       response.on('end', () => {
         try {
           const parsed = JSON.parse(data);
-          if (parsed.choices && parsed.choices[0]) {
-            resolve({
-              content: parsed.choices[0].message.content,
-              reasoning: parsed.choices[0].message.reasoning_content || null,
-              usage: parsed.usage || null,
-              model: parsed.model || model
-            });
-          } else {
-            resolve({ content: data, error: true });
+          if (parsed.error) {
+            reject(new Error(parsed.error.message || JSON.stringify(parsed.error)));
+            return;
           }
+          const choice = parsed.choices?.[0];
+          resolve({
+            content: choice?.message?.content || '',
+            reasoning: choice?.message?.reasoning_content || null,
+            usage: parsed.usage || null,
+            model: parsed.model || model
+          });
         } catch (e) {
-          resolve({ content: data, error: true });
+          reject(new Error(`Parse error: ${data.substring(0, 200)}`));
         }
       });
     });
 
-    request.on('error', (e) => resolve({ content: e.message, error: true }));
+    request.on('error', reject);
     request.write(payload);
     request.end();
   });
 }
 
-function generateMockResponse(messages) {
-  const lastMsg = messages[messages.length - 1].content;
-  return `[MiMo-V2.5-Pro Demo Response]\n\nThis is a demonstration response. To enable live MiMo API calls, set the MIMO_API_KEY environment variable.\n\nYour request: "${lastMsg.substring(0, 100)}..."\n\nIn production, MiMo-V2.5-Pro would provide:\n- Chain-of-thought reasoning\n- Step-by-step code analysis\n- Detailed explanations with examples`;
-}
-
 async function handleGenerate(req, res) {
+  res.setHeader('Content-Type', 'application/json');
   try {
-    const { prompt, language, context } = await getRequestBody(req);
+    const { prompt, language, model } = await getRequestBody(req);
+    const selectedModel = MODELS[model] || 'MiMo-V2.5-Pro';
     const messages = [
       {
         role: 'developer',
-        content: `You are MiMo CodeForge, an expert code generation assistant powered by Xiaomi MiMo-V2.5-Pro. Generate clean, well-documented, production-ready code. Always include comments explaining your reasoning. Language: ${language || 'auto-detect'}.`
+        content: `You are MiMo CodeForge powered by Xiaomi ${selectedModel}. Generate clean, production-ready code with chain-of-thought reasoning. Include comments, error handling, and follow best practices. Output the code in a markdown code block.`
       },
       {
         role: 'user',
-        content: context ? `Context:\n${context}\n\nRequest: ${prompt}` : prompt
+        content: `Generate ${language || ''} code: ${prompt}`
       }
     ];
 
-    const result = await callMiMoAPI(messages);
+    const result = await callMiMoAPI(messages, selectedModel);
     res.writeHead(200);
-    res.end(JSON.stringify({
-      success: true,
-      type: 'generate',
-      result: result.content,
-      reasoning: result.reasoning,
-      usage: result.usage,
-      model: result.model || 'MiMo-V2.5-Pro'
-    }));
+    res.end(JSON.stringify({ success: true, type: 'generate', ...result }));
   } catch (e) {
     res.writeHead(400);
     res.end(JSON.stringify({ error: e.message }));
@@ -174,12 +167,14 @@ async function handleGenerate(req, res) {
 }
 
 async function handleReview(req, res) {
+  res.setHeader('Content-Type', 'application/json');
   try {
-    const { code, language, focus } = await getRequestBody(req);
+    const { code, language, focus, model } = await getRequestBody(req);
+    const selectedModel = MODELS[model] || 'MiMo-V2.5-Pro';
     const messages = [
       {
         role: 'developer',
-        content: `You are MiMo CodeForge Code Reviewer powered by Xiaomi MiMo-V2.5-Pro. Perform a thorough code review with chain-of-thought reasoning. Analyze: security vulnerabilities, performance issues, code quality, best practices, potential bugs. Provide severity ratings (critical/warning/info) and specific fix suggestions with code examples.`
+        content: `You are MiMo CodeForge Code Reviewer powered by Xiaomi ${selectedModel}. Perform a thorough code review with chain-of-thought reasoning. Analyze: security vulnerabilities, performance issues, code quality, best practices, potential bugs. Provide severity ratings (critical/warning/info) and specific fix suggestions with code examples.`
       },
       {
         role: 'user',
@@ -187,16 +182,9 @@ async function handleReview(req, res) {
       }
     ];
 
-    const result = await callMiMoAPI(messages);
+    const result = await callMiMoAPI(messages, selectedModel);
     res.writeHead(200);
-    res.end(JSON.stringify({
-      success: true,
-      type: 'review',
-      result: result.content,
-      reasoning: result.reasoning,
-      usage: result.usage,
-      model: result.model || 'MiMo-V2.5-Pro'
-    }));
+    res.end(JSON.stringify({ success: true, type: 'review', ...result }));
   } catch (e) {
     res.writeHead(400);
     res.end(JSON.stringify({ error: e.message }));
@@ -204,12 +192,14 @@ async function handleReview(req, res) {
 }
 
 async function handleDebug(req, res) {
+  res.setHeader('Content-Type', 'application/json');
   try {
-    const { code, error, language } = await getRequestBody(req);
+    const { code, error, language, model } = await getRequestBody(req);
+    const selectedModel = MODELS[model] || 'MiMo-V2.5-Pro';
     const messages = [
       {
         role: 'developer',
-        content: `You are MiMo CodeForge Debugger powered by Xiaomi MiMo-V2.5-Pro. Analyze the code and error using chain-of-thought reasoning. Identify the root cause, explain why it happens, and provide a corrected version with detailed explanation of the fix.`
+        content: `You are MiMo CodeForge Debugger powered by Xiaomi ${selectedModel}. Analyze the code and error using chain-of-thought reasoning. Identify the root cause, explain why it happens, and provide a corrected version with detailed explanation of the fix.`
       },
       {
         role: 'user',
@@ -217,16 +207,9 @@ async function handleDebug(req, res) {
       }
     ];
 
-    const result = await callMiMoAPI(messages);
+    const result = await callMiMoAPI(messages, selectedModel);
     res.writeHead(200);
-    res.end(JSON.stringify({
-      success: true,
-      type: 'debug',
-      result: result.content,
-      reasoning: result.reasoning,
-      usage: result.usage,
-      model: result.model || 'MiMo-V2.5-Pro'
-    }));
+    res.end(JSON.stringify({ success: true, type: 'debug', ...result }));
   } catch (e) {
     res.writeHead(400);
     res.end(JSON.stringify({ error: e.message }));
@@ -234,12 +217,14 @@ async function handleDebug(req, res) {
 }
 
 async function handleExplain(req, res) {
+  res.setHeader('Content-Type', 'application/json');
   try {
-    const { code, language, level } = await getRequestBody(req);
+    const { code, language, level, model } = await getRequestBody(req);
+    const selectedModel = MODELS[model] || 'MiMo-V2.5-Pro';
     const messages = [
       {
         role: 'developer',
-        content: `You are MiMo CodeForge Explainer powered by Xiaomi MiMo-V2.5-Pro. Explain code with chain-of-thought reasoning at ${level || 'intermediate'} level. Break down the logic step by step, explain design patterns used, time/space complexity, and provide analogies where helpful.`
+        content: `You are MiMo CodeForge Explainer powered by Xiaomi ${selectedModel}. Explain code with chain-of-thought reasoning at ${level || 'intermediate'} level. Break down the logic step by step, explain design patterns used, time/space complexity, and provide analogies where helpful.`
       },
       {
         role: 'user',
@@ -247,16 +232,59 @@ async function handleExplain(req, res) {
       }
     ];
 
-    const result = await callMiMoAPI(messages);
+    const result = await callMiMoAPI(messages, selectedModel);
     res.writeHead(200);
-    res.end(JSON.stringify({
-      success: true,
-      type: 'explain',
-      result: result.content,
-      reasoning: result.reasoning,
-      usage: result.usage,
-      model: result.model || 'MiMo-V2.5-Pro'
-    }));
+    res.end(JSON.stringify({ success: true, type: 'explain', ...result }));
+  } catch (e) {
+    res.writeHead(400);
+    res.end(JSON.stringify({ error: e.message }));
+  }
+}
+
+async function handleTestGen(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  try {
+    const { code, language, framework, model } = await getRequestBody(req);
+    const selectedModel = MODELS[model] || 'MiMo-V2.5-Pro';
+    const messages = [
+      {
+        role: 'developer',
+        content: `You are MiMo CodeForge Test Generator powered by Xiaomi ${selectedModel}. Generate comprehensive unit tests with chain-of-thought reasoning. Cover edge cases, error scenarios, and happy paths. Use ${framework || 'the standard testing framework'} for the language.`
+      },
+      {
+        role: 'user',
+        content: `Generate unit tests for this ${language || ''} code:\n\n\`\`\`${language || ''}\n${code}\n\`\`\``
+      }
+    ];
+
+    const result = await callMiMoAPI(messages, selectedModel);
+    res.writeHead(200);
+    res.end(JSON.stringify({ success: true, type: 'test', ...result }));
+  } catch (e) {
+    res.writeHead(400);
+    res.end(JSON.stringify({ error: e.message }));
+  }
+}
+
+async function handleOptimize(req, res) {
+  res.setHeader('Content-Type', 'application/json');
+  try {
+    const { code, language, target, model } = await getRequestBody(req);
+    const selectedModel = MODELS[model] || 'MiMo-V2.5-Pro';
+    const messages = [
+      {
+        role: 'developer',
+        content: `You are MiMo CodeForge Optimizer powered by Xiaomi ${selectedModel}. Optimize code with chain-of-thought reasoning. Focus on: ${target || 'performance and readability'}. Show before/after comparison, explain trade-offs, and provide Big-O analysis where applicable.`
+      },
+      {
+        role: 'user',
+        content: `Optimize this ${language || ''} code:\n\n\`\`\`${language || ''}\n${code}\n\`\`\``
+      }
+    ];
+
+    const result = await callMiMoAPI(messages, selectedModel);
+    res.writeHead(200);
+    res.end(JSON.stringify({ success: true, type: 'optimize', ...result }));
   } catch (e) {
     res.writeHead(400);
     res.end(JSON.stringify({ error: e.message }));
@@ -264,6 +292,7 @@ async function handleExplain(req, res) {
 }
 
 server.listen(PORT, () => {
-  console.log(`🔥 MiMo CodeForge running on http://localhost:${PORT}`);
-  console.log(`📡 MiMo API: ${MIMO_API_KEY ? 'Connected' : 'Demo mode (set MIMO_API_KEY)'}`);
+  console.log(`🔥 MiMo CodeForge v2.0 running on http://localhost:${PORT}`);
+  console.log(`📡 Models: ${Object.values(MODELS).join(', ')}`);
+  console.log(`🔑 API: ${MIMO_API_KEY ? 'Connected' : 'Demo mode (set MIMO_API_KEY)'}`);
 });

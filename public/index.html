@@ -90,7 +90,7 @@
           <div class="text-[10px] text-gray-500 mt-1">Reasoning</div>
         </div>
         <div class="glass rounded-xl p-3 text-center">
-          <div class="text-xl font-bold text-purple-400">4</div>
+          <div class="text-xl font-bold text-purple-400">6</div>
           <div class="text-[10px] text-gray-500 mt-1">Tools</div>
         </div>
         <div class="glass rounded-xl p-3 text-center">
@@ -117,6 +117,23 @@
         </button>
         <button onclick="switchTool('explain')" id="tab-explain" class="px-5 py-2.5 rounded-xl text-sm font-medium border border-white/10 transition-all text-gray-400 hover:text-white">
           📖 Explain
+        </button>
+        <button onclick="switchTool('test')" id="tab-test" class="px-5 py-2.5 rounded-xl text-sm font-medium border border-white/10 transition-all text-gray-400 hover:text-white">
+          🧪 Test Gen
+        </button>
+        <button onclick="switchTool('optimize')" id="tab-optimize" class="px-5 py-2.5 rounded-xl text-sm font-medium border border-white/10 transition-all text-gray-400 hover:text-white">
+          🚀 Optimize
+        </button>
+      </div>
+
+      <!-- Model Selector -->
+      <div class="flex items-center gap-3 mb-6">
+        <span class="text-xs text-gray-500">Model:</span>
+        <button onclick="selectModel('pro')" id="model-pro" class="px-3 py-1.5 rounded-lg text-xs font-medium border border-mimo-500/50 bg-mimo-500/10 text-mimo-300 transition-all">
+          MiMo V2.5-Pro
+        </button>
+        <button onclick="selectModel('standard')" id="model-standard" class="px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-gray-400 transition-all hover:text-white">
+          MiMo V2.5
         </button>
       </div>
 
@@ -189,6 +206,41 @@
               </div>
             </div>
 
+            <!-- Test Gen -->
+            <div id="panel-test" class="hidden">
+              <label class="text-sm text-gray-400 mb-2 block">Code to generate tests for</label>
+              <textarea id="test-code" rows="8" placeholder="Paste your code here — MiMo will generate comprehensive unit tests..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-mimo-500/50 font-mono text-sm mb-4"></textarea>
+              <div class="flex gap-3">
+                <div class="flex-1">
+                  <label class="text-xs text-gray-500 mb-1 block">Language</label>
+                  <select id="test-language" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                    <option value="python">Python (pytest)</option>
+                    <option value="javascript">JavaScript (Jest)</option>
+                    <option value="typescript">TypeScript (Vitest)</option>
+                    <option value="go">Go (testing)</option>
+                    <option value="rust">Rust (#[test])</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Optimize -->
+            <div id="panel-optimize" class="hidden">
+              <label class="text-sm text-gray-400 mb-2 block">Code to optimize</label>
+              <textarea id="optimize-code" rows="8" placeholder="Paste code to optimize — MiMo will improve performance and readability..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-mimo-500/50 font-mono text-sm mb-4"></textarea>
+              <div class="flex gap-3">
+                <div class="flex-1">
+                  <label class="text-xs text-gray-500 mb-1 block">Optimization target</label>
+                  <select id="optimize-target" class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none">
+                    <option value="performance">Performance</option>
+                    <option value="readability">Readability</option>
+                    <option value="memory">Memory usage</option>
+                    <option value="all">All aspects</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
             <!-- Submit -->
             <button onclick="submitRequest()" id="submit-btn" class="mt-4 w-full px-6 py-3.5 bg-gradient-to-r from-mimo-600 to-mimo-500 rounded-xl font-semibold text-white shadow-lg shadow-mimo-500/25 hover:shadow-mimo-500/40 transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
               <span id="submit-text">⚡ Generate with MiMo</span>
@@ -247,8 +299,8 @@
         </div>
         <div class="glass rounded-2xl p-6 card-hover">
           <div class="text-2xl mb-3">🛠️</div>
-          <h3 class="font-semibold mb-2">4-in-1 Developer Tools</h3>
-          <p class="text-sm text-gray-400">Code generation, review, debugging, and explanation — all powered by MiMo's advanced reasoning capabilities.</p>
+          <h3 class="font-semibold mb-2">6-in-1 Developer Tools</h3>
+          <p class="text-sm text-gray-400">Code generation, review, debugging, explanation, test generation, and optimization — all powered by MiMo's advanced reasoning capabilities.</p>
         </div>
         <div class="glass rounded-2xl p-6 card-hover">
           <div class="text-2xl mb-3">⚡</div>
@@ -280,6 +332,8 @@ node server.js</code></pre>
               <div class="flex items-center gap-2"><span class="text-xs bg-blue-500/20 text-blue-400 px-2 py-0.5 rounded">POST</span><code class="text-gray-400">/api/review</code></div>
               <div class="flex items-center gap-2"><span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded">POST</span><code class="text-gray-400">/api/debug</code></div>
               <div class="flex items-center gap-2"><span class="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded">POST</span><code class="text-gray-400">/api/explain</code></div>
+              <div class="flex items-center gap-2"><span class="text-xs bg-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded">POST</span><code class="text-gray-400">/api/test</code></div>
+              <div class="flex items-center gap-2"><span class="text-xs bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded">POST</span><code class="text-gray-400">/api/optimize</code></div>
             </div>
             <div class="mt-4 text-xs text-gray-500">
               <p>Base URL: <code class="text-mimo-400">https://api.xiaomimimo.com/v1</code></p>
@@ -297,7 +351,7 @@ node server.js</code></pre>
     <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-2">
         <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-mimo-500 to-mimo-700 flex items-center justify-center text-xs font-bold">⚡</div>
-        <span class="text-sm text-gray-500">MiMo CodeForge © 2025</span>
+        <span class="text-sm text-gray-500">MiMo CodeForge © 2026</span>
       </div>
       <div class="flex items-center gap-6 text-sm text-gray-500">
         <a href="https://github.com/smokyrudeboys/mimo-codeforge" class="hover:text-mimo-400 transition-colors">GitHub</a>
@@ -309,6 +363,17 @@ node server.js</code></pre>
 
   <script>
     let activeTool = 'generate';
+    let activeModel = 'pro';
+
+    function selectModel(model) {
+      activeModel = model;
+      document.getElementById('model-pro').className = model === 'pro' 
+        ? 'px-3 py-1.5 rounded-lg text-xs font-medium border border-mimo-500/50 bg-mimo-500/10 text-mimo-300 transition-all'
+        : 'px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-gray-400 transition-all hover:text-white';
+      document.getElementById('model-standard').className = model === 'standard'
+        ? 'px-3 py-1.5 rounded-lg text-xs font-medium border border-cyan-500/50 bg-cyan-500/10 text-cyan-300 transition-all'
+        : 'px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 text-gray-400 transition-all hover:text-white';
+    }
 
     function switchTool(tool) {
       activeTool = tool;
@@ -322,7 +387,7 @@ node server.js</code></pre>
       document.querySelectorAll('[id^="panel-"]').forEach(p => p.classList.add('hidden'));
       document.getElementById(`panel-${tool}`).classList.remove('hidden');
 
-      const labels = { generate: '⚡ Generate with MiMo', review: '🔍 Review with MiMo', debug: '🐛 Debug with MiMo', explain: '📖 Explain with MiMo' };
+      const labels = { generate: '⚡ Generate with MiMo', review: '🔍 Review with MiMo', debug: '🐛 Debug with MiMo', explain: '📖 Explain with MiMo', test: '🧪 Generate Tests', optimize: '🚀 Optimize with MiMo' };
       document.getElementById('submit-text').textContent = labels[tool];
     }
 
@@ -343,7 +408,8 @@ node server.js</code></pre>
           body = {
             prompt: document.getElementById('input-prompt').value,
             language: document.getElementById('input-language').value,
-            context: document.getElementById('input-context').value
+            context: document.getElementById('input-context').value,
+            model: activeModel
           };
           break;
         case 'review':
@@ -351,7 +417,8 @@ node server.js</code></pre>
           body = {
             code: document.getElementById('review-code').value,
             language: document.getElementById('input-language')?.value || '',
-            focus: document.getElementById('review-focus').value
+            focus: document.getElementById('review-focus').value,
+            model: activeModel
           };
           break;
         case 'debug':
@@ -359,7 +426,8 @@ node server.js</code></pre>
           body = {
             code: document.getElementById('debug-code').value,
             error: document.getElementById('debug-error').value,
-            language: ''
+            language: '',
+            model: activeModel
           };
           break;
         case 'explain':
@@ -367,7 +435,25 @@ node server.js</code></pre>
           body = {
             code: document.getElementById('explain-code').value,
             language: '',
-            level: document.getElementById('explain-level').value
+            level: document.getElementById('explain-level').value,
+            model: activeModel
+          };
+          break;
+        case 'test':
+          endpoint = '/api/test';
+          body = {
+            code: document.getElementById('test-code').value,
+            language: document.getElementById('test-language').value,
+            model: activeModel
+          };
+          break;
+        case 'optimize':
+          endpoint = '/api/optimize';
+          body = {
+            code: document.getElementById('optimize-code').value,
+            language: '',
+            target: document.getElementById('optimize-target').value,
+            model: activeModel
           };
           break;
       }
@@ -470,7 +556,7 @@ node server.js</code></pre>
     fetch('/api/health').then(r => r.json()).then(d => {
       const status = document.getElementById('api-status');
       if (d.apiConfigured) {
-        status.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span><span class="text-green-300">Live: MiMo V2.5-Pro</span>';
+        status.innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span><span class="text-green-300">Live: ' + d.models.join(' + ') + '</span>';
       } else {
         status.innerHTML = '<span class="w-2 h-2 rounded-full bg-amber-400"></span><span class="text-amber-300">Demo Mode</span>';
       }
